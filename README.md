@@ -3,8 +3,10 @@ A Joomla! plugin to send mails via the SparkPost API
 
 # Usage
 1. Download the zip package
+1. Unpack the zip package to a temporary folder
+3. Zip the contents of the folder sparkpost-master/plugins/system/sparkpost into a new zip file
 2. In your Joomla website go to Extensions -> Manage -> Install
-3. Select the downloaded file on the Upload Package File tab
+3. Select the new zip file on the Upload Package File tab
 4. Click on Upload & Install
 5. The plugin is now installed
 6. Go to Extensions -> Plugins
