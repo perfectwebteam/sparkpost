@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.6" type="plugin" group="system" method="upgrade">
+    <name>plg_system_sparkpost</name>
+    <author>Perfect Web Team</author>
+    <creationDate>2017-02-01</creationDate>
+    <copyright>Copyright (C) 2017 Perfect Web Team. All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+    <authorEmail>hallo@perfectwebteam.nl</authorEmail>
+    <authorUrl>https://perfectwebteam.nl</authorUrl>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_SPARKPOST_DESC</description>
+    <files>
+        <file plugin="sparkpost">sparkpost.php</file>
+        <file>changelog.txt</file>
+        <file>LICENSE</file>
+        <folder>mailer</folder>
+        <folder>library</folder>
+    </files>
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_sparkpost.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_sparkpost.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="apiKey"
+                       type="text"
+                       label="PLG_SYSTEM_SPARKPOST_APIKEY_LABEL"
+                       description="PLG_SYSTEM_SPARKPOST_APIKEY_DESC"
+                       class="input-xxlarge" />
+            </fieldset>
+        </fields>
+    </config>
+</extension>

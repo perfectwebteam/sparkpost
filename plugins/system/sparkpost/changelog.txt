@@ -1,0 +1,12 @@
+Changelog for SparkPost Plugin by Perfect Web Team
+https://github.com/perfectwebteam/sparkpost
+-------------------------------------------------------------------
+Legend:
+* -> Security Fix
+# -> Issue Fix
+$ -> Language fix or change
++ -> Addition
+^ -> Change
+- -> Removed
+! -> Note
+-------------------- 1.0.0 Release [XX-XXX-2017] ------------------
