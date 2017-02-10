@@ -717,7 +717,10 @@ class JMail extends PHPMailer
 
 		foreach ($replyTos as $replyTo)
 		{
-			$replyToAddresses[] = $this->addrFormat($replyTo);
+			if (isset($replyTo[0]) && strlen($replyTo[0]) > 0)
+			{
+				$replyToAddresses[] = $this->addrFormat($replyTo);
+			}
 		}
 
 		if (count($replyToAddresses) > 0)
