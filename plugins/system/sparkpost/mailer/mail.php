@@ -682,6 +682,15 @@ class JMail extends PHPMailer
 			$html = $this->makeClickableUrls($html);
 		}
 
+		// Get the reply-to address
+		$replyTos         = $this->getReplyToAddresses();
+		$replyToAddresses = array();
+
+		foreach ($replyTos as $replyTo)
+		{
+			$replyToAddresses[] = $this->addrFormat($replyTo);
+		}
+
 		// Build the payload
 		$payload = [
 			'content' => [
@@ -690,6 +699,7 @@ class JMail extends PHPMailer
 					'email' => $this->From,
 				],
 				'subject'     => $this->Subject,
+				'reply_to'    => implode(',', $replyToAddresses),
 				'html'        => $html,
 				'text'        => $this->Body,
 				'attachments' => $messageAttachments,
