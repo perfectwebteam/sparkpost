@@ -725,7 +725,7 @@ class JMail extends PHPMailer
 
 		if (count($replyToAddresses) > 0)
 		{
-			$payload['reply_to'] = implode(',', $replyToAddresses);
+			$payload['content']['reply_to'] = implode(',', $replyToAddresses);
 		}
 
 		// Post the payload
