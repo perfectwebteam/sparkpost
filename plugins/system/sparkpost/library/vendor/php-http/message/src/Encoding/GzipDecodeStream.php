@@ -2,6 +2,7 @@
 
 namespace Http\Message\Encoding;
 
+use Clue\StreamFilter as Filter;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -21,13 +22,16 @@ class GzipDecodeStream extends FilteredStream
             throw new \RuntimeException('The zlib extension must be enabled to use this stream');
         }
 
-        parent::__construct($stream, ['window' => 31], ['window' => 31, 'level' => $level]);
+        parent::__construct($stream, ['window' => 31]);
+
+        // @deprecated will be removed in 2.0
+        $this->writeFilterCallback = Filter\fun($this->writeFilter(), ['window' => 31, 'level' => $level]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getReadFilter()
+    protected function readFilter()
     {
         return 'zlib.inflate';
     }
@@ -35,7 +39,7 @@ class GzipDecodeStream extends FilteredStream
     /**
      * {@inheritdoc}
      */
-    public function getWriteFilter()
+    protected function writeFilter()
     {
         return 'zlib.deflate';
     }

@@ -1,0 +1,7 @@
+{
+    "require": {
+        "sparkpost/sparkpost": "^2.1",
+        "guzzlehttp/guzzle": "^6.3",
+        "php-http/guzzle6-adapter": "^1.0"
+    }
+}
