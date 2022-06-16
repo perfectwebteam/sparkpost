@@ -4,6 +4,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased][unreleased]
 
+## [2.3.0] - 2021-03-16
+- [#201](https://github.com/SparkPost/php-sparkpost/pull/201) Update examples, README
+- [#200](https://github.com/SparkPost/php-sparkpost/pull/200) PHP 8 support
+
+## [2.2.1] - 2021-03-08
+- [#198](https://github.com/SparkPost/php-sparkpost/pull/198) Address #197: No longer need formfeed replacement. README work.
+- [#191](https://github.com/SparkPost/php-sparkpost/pull/191) Updating License
+
+## [2.2.0] - 2019-06-04
+- [#187](https://github.com/SparkPost/php-sparkpost/pull/187) Updated composer.json
+- [#169](https://github.com/SparkPost/php-sparkpost/pull/169) Optional automatic retry on 5xx
+- [#166](https://github.com/SparkPost/php-sparkpost/pull/166/files) Quick fix for using the API without composer
+- [#149](https://github.com/SparkPost/php-sparkpost/pull/149) Setters should return current object
+
 ## [2.1.0] - 2017-01-09
 ### Added
 - [#161](https://github.com/SparkPost/php-sparkpost/pull/161) added example for sending email with attachment and simplified the examples setup
@@ -88,7 +102,7 @@ This major release included a complete refactor of the library to be a thin HTTP
 ### Added
 - Request adapter interface for passing in request adapters via `Ivory\HttpAdapter`
 - Ability to create 'unwrapped' modules for API endpoints that haven't had functionality included yet.
-- Instructions for setting up request adapters in README 
+- Instructions for setting up request adapters in README
 
 ### Changed
 - Library now requires PHP 5.5 or greater
@@ -97,7 +111,9 @@ This major release included a complete refactor of the library to be a thin HTTP
 ### Fixed
 - README now has proper code blocks denoting PHP language
 
-[unreleased]: https://github.com/sparkpost/php-sparkpost/compare/2.1.0...HEAD
+[unreleased]: https://github.com/sparkpost/php-sparkpost/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/sparkpost/php-sparkpost/compare/2.2.0...2.2.1
+[2.2.0]: https://github.com/sparkpost/php-sparkpost/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/sparkpost/php-sparkpost/compare/2.0.3...2.1.0
 [2.0.3]: https://github.com/sparkpost/php-sparkpost/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/sparkpost/php-sparkpost/compare/2.0.1...2.0.2
@@ -109,4 +125,3 @@ This major release included a complete refactor of the library to be a thin HTTP
 [1.0.3]: https://github.com/sparkpost/php-sparkpost/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/sparkpost/php-sparkpost/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sparkpost/php-sparkpost/compare/v1.0.0...v1.0.1
-

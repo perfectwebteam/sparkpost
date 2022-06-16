@@ -1,7 +1,25 @@
 {
+    "name": "perfectwebteam/sparkpost",
+    "type": "project",
+    "description": "SparkPost Mailer plugin for Joomla",
+    "keywords": [
+        "joomla",
+        "cms",
+        "sparkpost"
+    ],
+    "homepage": "https://github.com/perfectwebteam/sparkpost",
+    "license": "GPL-2.0-or-later",
+    "config": {
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "7.3"
+        },
+        "github-protocols": ["https"]
+    },
     "require": {
+        "php": "7.3",
         "sparkpost/sparkpost": "^2.1",
-        "guzzlehttp/guzzle": "^6.3",
-        "php-http/guzzle6-adapter": "^1.0"
+        "guzzlehttp/guzzle": "^7.0",
+        "php-http/guzzle7-adapter": "^1.0"
     }
 }

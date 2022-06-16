@@ -13,7 +13,7 @@ class SparkPost
     /**
      * @var string Library version, used for setting User-Agent
      */
-    private $version = '2.1.0';
+    private $version = '2.3.0';
 
     /**
      * @var HttpClient|HttpAsyncClient used to make requests
@@ -41,6 +41,7 @@ class SparkPost
         'version' => 'v1',
         'async' => true,
         'debug' => false,
+        'retries' => 0
     ];
 
     /**
@@ -97,11 +98,27 @@ class SparkPost
         $requestValues = $this->buildRequestValues($method, $uri, $payload, $headers);
         $request = call_user_func_array(array($this, 'buildRequestInstance'), $requestValues);
 
+        $retries = $this->options['retries'];
         try {
-            return new SparkPostResponse($this->httpClient->sendRequest($request), $this->ifDebug($requestValues));
+            if ($retries > 0) {
+              $resp = $this->syncReqWithRetry($request, $retries);
+            } else {
+              $resp = $this->httpClient->sendRequest($request);
+            }
+            return new SparkPostResponse($resp, $this->ifDebug($requestValues));
         } catch (\Exception $exception) {
             throw new SparkPostException($exception, $this->ifDebug($requestValues));
         }
+    }
+
+    private function syncReqWithRetry($request, $retries)
+    {
+        $resp = $this->httpClient->sendRequest($request);
+        $status = $resp->getStatusCode();
+        if ($status >= 500 && $status <= 599 && $retries > 0) {
+          return $this->syncReqWithRetry($request, $retries-1);
+        }
+        return $resp;
     }
 
     /**
@@ -120,10 +137,26 @@ class SparkPost
             $requestValues = $this->buildRequestValues($method, $uri, $payload, $headers);
             $request = call_user_func_array(array($this, 'buildRequestInstance'), $requestValues);
 
-            return new SparkPostPromise($this->httpClient->sendAsyncRequest($request), $this->ifDebug($requestValues));
+            $retries = $this->options['retries'];
+            if ($retries > 0) {
+                return new SparkPostPromise($this->asyncReqWithRetry($request, $retries), $this->ifDebug($requestValues));
+            } else {
+                return new SparkPostPromise($this->httpClient->sendAsyncRequest($request), $this->ifDebug($requestValues));
+            }
         } else {
             throw new \Exception('Your http client does not support asynchronous requests. Please use a different client or use synchronous requests.');
         }
+    }
+
+    private function asyncReqWithRetry($request, $retries)
+    {
+        return $this->httpClient->sendAsyncRequest($request)->then(function($response) use ($request, $retries) {
+            $status = $response->getStatusCode();
+            if ($status >= 500 && $status <= 599 && $retries > 0) {
+                return $this->asyncReqWithRetry($request, $retries-1);
+            }
+            return $response;
+        });
     }
 
     /**
@@ -151,12 +184,8 @@ class SparkPost
         $url = $this->getUrl($uri, $params);
         $headers = $this->getHttpHeaders($headers);
 
-        // Sparkpost API will not tolerate form feed in JSON.
-        $jsonReplace = [
-            '\f' => '',
-        ];
-        $body = strtr(json_encode($body), $jsonReplace);
-
+        // old form-feed workaround now removed
+        $body = json_encode($body);
         return [
             'method' => $method,
             'url' => $url,
@@ -172,9 +201,9 @@ class SparkPost
      *
      * @return RequestInterface
      */
-    public function buildRequestInstance($method, $uri, $headers, $body)
+    public function buildRequestInstance($method, $url, $headers, $body)
     {
-        return $this->getMessageFactory()->createRequest($method, $uri, $headers, $body);
+        return $this->getMessageFactory()->createRequest($method, $url, $headers, $body);
     }
 
     /**
@@ -242,6 +271,8 @@ class SparkPost
      * Sets $httpClient to be used for request.
      *
      * @param HttpClient|HttpAsyncClient $httpClient - the client to be used for request
+     *
+     * @return SparkPost
      */
     public function setHttpClient($httpClient)
     {
@@ -250,12 +281,16 @@ class SparkPost
         }
 
         $this->httpClient = $httpClient;
+
+        return $this;
     }
 
     /**
      * Sets the options from the param and defaults for the SparkPost object.
      *
      * @param array $options - either an string API key or an array of options
+     *
+     * @return SparkPost
      */
     public function setOptions($options)
     {
@@ -277,6 +312,8 @@ class SparkPost
                 $this->options[$option] = $value;
             }
         }
+
+        return $this;
     }
 
     /**
