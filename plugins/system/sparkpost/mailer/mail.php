@@ -10,6 +10,8 @@
  * @link       https://perfectwebteam.nl
  */
 
+// Phpcs:ignoreFile
+
 /**
  * @version        $Id: mail.php 14401 2010-01-26 14:10:00Z louis $
  * @package        Joomla.Framework
@@ -25,9 +27,13 @@
 // Check to ensure this file is within the rest of the framework
 defined('JPATH_BASE') or die();
 
+use GuzzleHttp\Client;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\Mail\MailHelper;
 use Joomla\Registry\Registry;
 use SparkPost\SparkPost;
-use GuzzleHttp\Client;
 use Http\Adapter\Guzzle7\Client as GuzzleAdapter;
 
 /**
@@ -60,6 +66,14 @@ class JMail extends PHPMailer
 	private $sparky;
 
 	/**
+	 * Set SparkPost online status
+	 *
+	 * @var    boolean
+	 * @since  1.0.0
+	 */
+	private $online = false;
+
+	/**
 	 * Constructor
 	 */
 	/**
@@ -76,17 +90,18 @@ class JMail extends PHPMailer
 		$plugin = JPluginHelper::getPlugin('system', 'sparkpost');
 		$pluginParams = new Registry($plugin->params);
 
+		$this->online = (bool) $pluginParams->get('online', false);
+
 		require JPATH_SITE . '/plugins/system/sparkpost/library/vendor/autoload.php';
 
-		$httpClient   = new GuzzleAdapter(new Client());
+		$httpClient   = new GuzzleAdapter(new Client);
 		$this->sparky = new SparkPost($httpClient, ['key' => $pluginParams->get('apiKey')]);
 
 		// Initialize the logger class
-		jimport('joomla.error.log');
-		$date = JFactory::getDate()->format('Y_m');
+		$date = Factory::getDate()->format('Y_m');
 
 		// Add the logger.
-		JLog::addLogger(
+		Log::addLogger(
 			array(
 				'text_file' => 'plg_system_sparkpost.log.' . $date . '.php'
 			),
@@ -138,7 +153,7 @@ class JMail extends PHPMailer
 		}
 		catch (Exception $e)
 		{
-			return $this->phpMailerSend();
+			 return $this->phpMailerSend();
 		}
 
 	}
@@ -153,7 +168,7 @@ class JMail extends PHPMailer
 	 */
 	public function phpMailerSend()
 	{
-		if (JFactory::getConfig()->get('mailonline', 1))
+		if (Factory::getConfig()->get('mailonline', 1))
 		{
 			if (($this->Mailer == 'mail') && !function_exists('mail'))
 			{
@@ -171,7 +186,7 @@ class JMail extends PHPMailer
 		}
 		else
 		{
-			JFactory::getApplication()->enqueueMessage(JText::_('JLIB_MAIL_FUNCTION_OFFLINE'));
+			Factory::getApplication()->enqueueMessage(Text::_('JLIB_MAIL_FUNCTION_OFFLINE'));
 
 			return false;
 		}
@@ -195,22 +210,22 @@ class JMail extends PHPMailer
 			if (isset($from[2]))
 			{
 				// If it is an array with entries, use them
-				$this->setFrom(JMailHelper::cleanLine($from[0]), JMailHelper::cleanLine($from[1]), (bool) $from[2]);
+				$this->setFrom(MailHelper::cleanLine($from[0]), MailHelper::cleanLine($from[1]), (bool) $from[2]);
 			}
 			else
 			{
-				$this->setFrom(JMailHelper::cleanLine($from[0]), JMailHelper::cleanLine($from[1]));
+				$this->setFrom(MailHelper::cleanLine($from[0]), MailHelper::cleanLine($from[1]));
 			}
 		}
 		elseif (is_string($from))
 		{
 			// If it is a string we assume it is just the address
-			$this->setFrom(JMailHelper::cleanLine($from));
+			$this->setFrom(MailHelper::cleanLine($from));
 		}
 		else
 		{
 			// If it is neither, we log a message and throw an exception
-			$this->logMessage(JText::sprintf('JLIB_MAIL_INVALID_EMAIL_SENDER', $from), JLog::WARNING);
+			$this->logMessage(Text::sprintf('JLIB_MAIL_INVALID_EMAIL_SENDER', $from), JLog::WARNING);
 
 			throw new UnexpectedValueException(sprintf('Invalid email Sender: %s, JMail::setSender(%s)', $from));
 		}
@@ -229,7 +244,7 @@ class JMail extends PHPMailer
 	 */
 	public function setSubject($subject)
 	{
-		$this->Subject = JMailHelper::cleanLine($subject);
+		$this->Subject = MailHelper::cleanLine($subject);
 
 		return $this;
 	}
@@ -249,7 +264,7 @@ class JMail extends PHPMailer
 		 * Filter the Body
 		 * TODO: Check for XSS
 		 */
-		$this->Body = JMailHelper::cleanText($content);
+		$this->Body = MailHelper::cleanText($content);
 
 		return $this;
 	}
@@ -284,25 +299,25 @@ class JMail extends PHPMailer
 
 				foreach ($combined as $recipientEmail => $recipientName)
 				{
-					$recipientEmail = JMailHelper::cleanLine($recipientEmail);
-					$recipientName = JMailHelper::cleanLine($recipientName);
+					$recipientEmail = MailHelper::cleanLine($recipientEmail);
+					$recipientName  = MailHelper::cleanLine($recipientName);
 					call_user_func('parent::' . $method, $recipientEmail, $recipientName);
 				}
 			}
 			else
 			{
-				$name = JMailHelper::cleanLine($name);
+				$name = MailHelper::cleanLine($name);
 
 				foreach ($recipient as $to)
 				{
-					$to = JMailHelper::cleanLine($to);
+					$to = MailHelper::cleanLine($to);
 					call_user_func('parent::' . $method, $to, $name);
 				}
 			}
 		}
 		else
 		{
-			$recipient = JMailHelper::cleanLine($recipient);
+			$recipient = MailHelper::cleanLine($recipient);
 			call_user_func('parent::' . $method, $recipient, $name);
 		}
 
@@ -381,6 +396,7 @@ class JMail extends PHPMailer
 	 *
 	 * @since   12.2
 	 * @throws  InvalidArgumentException
+	 * @throws  phpmailerException
 	 */
 	public function addAttachment($path, $name = '', $encoding = 'base64', $type = 'application/octet-stream', $disposition = 'attachment')
 	{
@@ -519,10 +535,13 @@ class JMail extends PHPMailer
 	 *
 	 * @return  boolean  True on success
 	 *
+	 * @throws  phpmailerException
+	 *
 	 * @since   11.1
 	 */
 	public function sendMail($from, $fromName, $recipient, $subject, $body, $mode = false, $cc = null, $bcc = null, $attachment = null,
-		$replyTo = null, $replyToName = null)
+		$replyTo = null, $replyToName = null
+	)
 	{
 		$this->setSubject($subject);
 		$this->setBody($body);
@@ -577,10 +596,10 @@ class JMail extends PHPMailer
 	 */
 	public function sendAdminMail($adminName, $adminEmail, $email, $type, $title, $author, $url = null)
 	{
-		$subject = JText::sprintf('JLIB_MAIL_USER_SUBMITTED', $type);
+		$subject = Text::sprintf('JLIB_MAIL_USER_SUBMITTED', $type);
 
-		$message = sprintf(JText::_('JLIB_MAIL_MSG_ADMIN'), $adminName, $type, $title, $author, $url, $url, 'administrator', $type);
-		$message .= JText::_('JLIB_MAIL_MSG') . "\n";
+		$message = sprintf(Text::_('JLIB_MAIL_MSG_ADMIN'), $adminName, $type, $title, $author, $url, $url, 'administrator', $type);
+		$message .= Text::_('JLIB_MAIL_MSG') . "\n";
 
 		$this->addRecipient($adminEmail);
 		$this->setSubject($subject);
@@ -592,12 +611,19 @@ class JMail extends PHPMailer
 	/**
 	 * Send mail through the SparkPost API.
 	 *
-	 * @return  bool  True if successful | False otherwise.
+	 * @return  boolean  True if successful | False otherwise.
+	 *
+	 * @throws  Exception
 	 *
 	 * @since   1.0
 	 */
 	private function sparkPostSend()
 	{
+		if ($this->online === false)
+		{
+			return;
+		}
+
 		// Get the attachments to send
 		$attachments = $this->GetAttachments();
 		$messageAttachments = array();
@@ -606,13 +632,22 @@ class JMail extends PHPMailer
 		{
 			foreach ($attachments as $attachment)
 			{
-				if ($attachment[6] == 'inline')
+				if ($attachment[6] === 'inline')
 				{
 					// Inline attachment (normally image)
 					$messageAttachments[] = array(
 						'name' => $attachment[7],
 						'type' => $this->filenameToType($attachment[1]),
 						'data' => $this->EncodeFile($attachment[0])
+					);
+				}
+				elseif ($attachment[5] === true)
+				{
+					// String attachment
+					$messageAttachments[] = array(
+						'name' => $attachment[2],
+						'type' => $this->filenameToType($attachment[1]),
+						'data' => $this->encodeString($attachment[0], $attachment[3])
 					);
 				}
 				else
@@ -681,6 +716,9 @@ class JMail extends PHPMailer
 
 		// Build the payload
 		$payload = [
+			'options' => [
+				'transactional' => true
+			],
 			'content' => [
 				'from'        => [
 					'name'  => $this->FromName,
@@ -735,22 +773,28 @@ class JMail extends PHPMailer
 
 			if ($response->getStatusCode() !== 200)
 			{
-				$this->logMessage('Received status code ' . $response->getStatusCode(), JLog::WARNING);
+				$this->logMessage('Received status code ' . $response->getStatusCode(), Log::WARNING);
 
 				return false;
 			}
-
-		} catch (Exception $e)
+		}
+		catch (Exception $e)
 		{
-			$this->logMessage('Subject: ' . $this->Subject, JLog::INFO);
-			$this->logMessage('Sender: ' . $this->From, JLog::INFO);
+			$this->logMessage('Referer: ' . Factory::getApplication()->input->server->getString('HTTP_REFERER'), Log::INFO);
+			$this->logMessage('Subject: ' . $this->Subject, Log::INFO);
+			$this->logMessage('Sender: ' . $this->From, Log::INFO);
+
+			if (empty($to))
+		{
+				$this->logMessage('No recipient specified', Log::INFO);
+			}
 
 			foreach ($to as $address)
 			{
-				$this->logMessage('Recipient: ' . $address['address']['email'], JLog::INFO);
+				$this->logMessage('Recipient: ' . $address['address']['email'], Log::INFO);
 			}
 
-			$this->logMessage($e->getMessage(), JLog::ERROR);
+			$this->logMessage($e->getMessage(), Log::ERROR);
 
 			return false;
 		}
@@ -774,7 +818,9 @@ class JMail extends PHPMailer
 	{
 		return preg_replace_callback(
 			'#\bhttps?://[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/))#',
-			function ($matches) { return "<a href=\'{$matches[0]}\'>{$matches[0]}</a>"; },
+			static function ($matches) {
+				return "<a href=\'{$matches[0]}\'>{$matches[0]}</a>";
+			},
 			$text
 		);
 	}
@@ -791,6 +837,6 @@ class JMail extends PHPMailer
 	 */
 	private function logMessage($message, $level)
 	{
-		JLog::add($message, $level, 'sparkpost');
+		Log::add($message, $level, 'sparkpost');
 	}
 }
