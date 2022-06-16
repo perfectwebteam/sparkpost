@@ -25,13 +25,10 @@
 // Check to ensure this file is within the rest of the framework
 defined('JPATH_BASE') or die();
 
-jimport('phpmailer.phpmailer');
-jimport('joomla.mail.helper');
-
 use Joomla\Registry\Registry;
 use SparkPost\SparkPost;
 use GuzzleHttp\Client;
-use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
+use Http\Adapter\Guzzle7\Client as GuzzleAdapter;
 
 /**
  * Email Class.  Provides a common interface to send email from the Joomla! Platform
@@ -46,7 +43,7 @@ class JMail extends PHPMailer
 	 * @var    array  JMail instances container.
 	 * @since  11.3
 	 */
-	protected static $instances = array();
+	protected static $instances = [];
 
 	/**
 	 * @var    string  Charset of the message.
@@ -525,7 +522,7 @@ class JMail extends PHPMailer
 	 * @since   11.1
 	 */
 	public function sendMail($from, $fromName, $recipient, $subject, $body, $mode = false, $cc = null, $bcc = null, $attachment = null,
-	                         $replyTo = null, $replyToName = null)
+		$replyTo = null, $replyToName = null)
 	{
 		$this->setSubject($subject);
 		$this->setBody($body);
@@ -601,7 +598,7 @@ class JMail extends PHPMailer
 	 */
 	private function sparkPostSend()
 	{
-	    // Get the attachments to send
+		// Get the attachments to send
 		$attachments = $this->GetAttachments();
 		$messageAttachments = array();
 
@@ -733,7 +730,7 @@ class JMail extends PHPMailer
 
 		try
 		{
-		    // Get the response from the mail service
+			// Get the response from the mail service
 			$response = $promise->wait();
 
 			if ($response->getStatusCode() !== 200)
@@ -753,7 +750,7 @@ class JMail extends PHPMailer
 				$this->logMessage('Recipient: ' . $address['address']['email'], JLog::INFO);
 			}
 
-		    $this->logMessage($e->getMessage(), JLog::ERROR);
+			$this->logMessage($e->getMessage(), JLog::ERROR);
 
 			return false;
 		}
@@ -777,10 +774,7 @@ class JMail extends PHPMailer
 	{
 		return preg_replace_callback(
 			'#\bhttps?://[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/))#',
-			create_function(
-				'$matches',
-				'return "<a href=\'{$matches[0]}\'>{$matches[0]}</a>";'
-			),
+			function ($matches) { return "<a href=\'{$matches[0]}\'>{$matches[0]}</a>"; },
 			$text
 		);
 	}
